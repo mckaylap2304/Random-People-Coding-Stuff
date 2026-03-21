@@ -23,6 +23,10 @@ If you contribute at all in any way to the project, please add your name to the 
 - Remove Profanity
 - Make a website for it
 
+## Needed Jobs
+- Dedecated tester: Must have a linux machine or linux vm running x86 to build the lastest version of the OS and distribute it on the website
+- Web Developer: Needed to create above website
+
 ## Roadmap
 - Complete bootloader and create proper Makefile and linker.ld to place the kernel at `0x1000`
 - Create Drivers
