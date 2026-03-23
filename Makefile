@@ -18,7 +18,8 @@ AS_FLAGS = -f bin
 LD_FLAGS = -m elf_i386 -T linker.ld
 KERNEL_OBJECTS = kernel/kernel.o kernel/ports.o kernel/mem.o
 DRIVER_OBJECTS = kernel/drivers/vga.o kernel/drivers/keyboard.o
-MISC_OBJECTS = kernel/colors.o kernel/terminal/terminal.o kernel/commands.o kernel/layouts/kb_layouts.o # ADDED
+MISC_OBJECTS = kernel/colors.o kernel/terminal/terminal.o kernel/commands.o kernel/layouts/kb_layouts.o \
+               kernel/comos/comos_lexer.o kernel/comos/comos_parser.o kernel/comos/comos_interp.o # ADDED
 # Builds the final disk image
 all: os.img
 	
@@ -48,6 +49,14 @@ kernel/terminal/terminal.o: kernel/terminal/terminal.c
 kernel/commands.o: kernel/commands.c
 	$(CC) $(CC_FLAGS) $< -o $@ || $(CC2) $(CC_FLAGS) $< -o $@
 # End added by Ember2819
+
+kernel/comos/comos_lexer.o: kernel/comos/comos_lexer.c
+	$(CC) $(CC_FLAGS) $< -o $@ || $(CC2) $(CC_FLAGS) $< -o $@
+kernel/comos/comos_parser.o: kernel/comos/comos_parser.c
+	$(CC) $(CC_FLAGS) $< -o $@ || $(CC2) $(CC_FLAGS) $< -o $@
+kernel/comos/comos_interp.o: kernel/comos/comos_interp.c
+	$(CC) $(CC_FLAGS) $< -o $@ || $(CC2) $(CC_FLAGS) $< -o $@
+
 # Link all kernel objects 
 kernel.elf: $(KERNEL_OBJECTS) $(DRIVER_OBJECTS) $(MISC_OBJECTS)
 	$(LD) $(LD_FLAGS) $(KERNEL_OBJECTS) $(DRIVER_OBJECTS) $(MISC_OBJECTS) -o kernel.elf

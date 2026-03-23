@@ -3,6 +3,7 @@
 #include "drivers/keyboard.h"
 #include "layouts/kb_layouts.h"
 #include "terminal/terminal.h"
+#include "comos/comos.h"
 
 
 // The command table
@@ -15,6 +16,7 @@ static Command commands[] = {
     { "setkeyuk", cmd_setkeyuk},
     { "clear", cmd_clear },
     { "version", cmd_version },
+    { "comos", cmd_comos },
 };
 
 static int num_commands = sizeof(commands) / sizeof(commands[0]);
@@ -30,6 +32,7 @@ static void cmd_help(uint8_t color) {
     printf("setkeyuk - Sets keyboard layout to UK QWERTY\n", color); // MorganPG1 - Add UK Keyboard layout
     printf("clear  - clear the screen\n", color); //ember
     printf("version - Version of the operating system\n", color); // TheOtterMonarch - Output version of the OS
+    printf("comos  - run the .comos scripting language\n", color);
 }
 
 static void cmd_hello(uint8_t color) {
@@ -78,6 +81,24 @@ static void cmd_clear(uint8_t color) {
 
 static void cmd_version(uint8_t color) {
     printf("\nCommunity OS v0.5\n", color);
+}
+
+//Ember2819,COMOS language 
+static ComosState comos_state;
+
+static void cmd_comos(uint8_t color) {
+    // Demo program -- runs until FAT32 lets us load .comos files from disk
+    static const char* demo =
+        "print(\"CommunityOS scripting language (.comos)\")\n"
+        "def fib(n):\n"
+        "    if n <= 1:\n"
+        "        return n\n"
+        "    return fib(n - 1) + fib(n - 2)\n"
+        "for i in range(8):\n"
+        "    print(fib(i))\n";
+
+    comos_init(&comos_state);
+    comos_run(&comos_state, demo);
 }
 
 // ---- dispatcher ----
