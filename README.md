@@ -65,6 +65,7 @@ There are 2 commands you can use for this:
 `make all` - This produces an os.img file
 
 `make run` - This produces an os.img file (like the make all command) but it also runs the img file in qemu so you can test it out.
+Note: When it asks what drive to boot from, press "1".
 
 # Other details
 
