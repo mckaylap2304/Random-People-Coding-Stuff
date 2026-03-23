@@ -14,6 +14,7 @@ static Command commands[] = {
     { "setkeyus", cmd_setkeyus},
     { "setkeyuk", cmd_setkeyuk},
     { "clear", cmd_clear },
+    {"version", cmd_version },
 };
 
 static int num_commands = sizeof(commands) / sizeof(commands[0]);
@@ -28,6 +29,7 @@ static void cmd_help(uint8_t color) {
     printf("setkeyus - Sets keyboard layout to US QWERTY\n", color);
     printf("setkeyuk - Sets keyboard layout to UK QWERTY\n", color); // MorganPG1 - Add UK Keyboard layout
     printf("clear  - clear the screen\n", color); //ember
+    printf("version - Version of the operating system\n", color); // TheOtterMonarch - Output version of the OS
 }
 
 static void cmd_hello(uint8_t color) {
@@ -72,6 +74,11 @@ static void cmd_setkeyuk(uint8_t color) { // Added by MorganPG1
 static void cmd_clear(uint8_t color) {
     terminal_clear(color);
 }
+
+static void cmd_version(uint8_t color) {
+    printf("\nCommunity OS v0.5\n", color);
+}
+
 // ---- dispatcher ----
 static int streq(unsigned char *a, char *b) {
     while (*a && *b) {
