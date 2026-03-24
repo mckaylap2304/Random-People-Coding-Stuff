@@ -165,7 +165,7 @@ itos:
 
 ;; Messages
 
-INIT_MSG	db "[Boot]: Hello, World!", 0xD, 0xA, 0x0
+INIT_MSG	db "Community OS Bootloader 1.0", 0xD, 0xA, 0x0
 PROTECTED_MSG	db "[Boot]: Entering protected mode.", 0xD, 0xA, 0x0
 DISK_ERR_MSG	db "[Boot]: Couldn't read disk: ", 0x0
 DISK_MSG	db "[Boot]: Attempting to read drive.", 0xD, 0xA, 0x0
