@@ -96,3 +96,4 @@ Also, you can join the community slack [here](https://join.slack.com/t/communtiy
 - Zorx555
 - mckaylap2304 (V2 Website creator)
 - TheOtterMonarch
+- codecrafter01001
