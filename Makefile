@@ -17,7 +17,8 @@ CC_FLAGS = -m32 -ffreestanding -nostdlib -fno-builtin -fno-stack-protector -g -c
 AS_FLAGS = -f bin
 LD_FLAGS = -m elf_i386 -T linker.ld
 KERNEL_OBJECTS = kernel/kernel.o kernel/ports.o kernel/mem.o
-DRIVER_OBJECTS = kernel/drivers/vga.o kernel/drivers/keyboard.o
+DRIVER_OBJECTS = kernel/drivers/vga.o kernel/drivers/keyboard.o kernel/drivers/tables/idt/idt_c.o kernel/drivers/tables/idt/idt_s.o \
+	kernel/drivers/tables/isr/isr_c.o kernel/drivers/tables/isr/isr_s.o kernel/drivers/tables/irq/irq_c.o kernel/drivers/tables/irq/irq_s.o kernel/drivers/tables/timer/timer.o
 MISC_OBJECTS = kernel/colors.o kernel/terminal/terminal.o kernel/commands.o kernel/layouts/kb_layouts.o \
                kernel/comos/comos_lexer.o kernel/comos/comos_parser.o kernel/comos/comos_interp.o # ADDED
 # Builds the final disk image
@@ -34,12 +35,30 @@ kernel/colors.o: kernel/colors.c
 	$(CC) $(CC_FLAGS) $< -o $@ || $(CC2) $(CC_FLAGS) $< -o $@
 kernel/layouts/kb_layouts.o: kernel/layouts/kb_layouts.c
 	$(CC) $(CC_FLAGS) $< -o $@ || $(CC2) $(CC_FLAGS) $< -o $@
+
+# IDT IRQ IRQ
+kernel/drivers/tables/idt/idt_c.o: kernel/drivers/tables/idt/idt.c
+	$(CC) $(CC_FLAGS) $< -o $@ || $(CC2) $(CC_FLAGS) $< -o $@
+kernel/drivers/tables/isr/isr_c.o: kernel/drivers/tables/isr/isr.c
+	$(CC) $(CC_FLAGS) $< -o $@ || $(CC2) $(CC_FLAGS) $< -o $@
+kernel/drivers/tables/irq/irq_c.o: kernel/drivers/tables/irq/irq.c
+	$(CC) $(CC_FLAGS) $< -o $@ || $(CC2) $(CC_FLAGS) $< -o $@
+kernel/drivers/tables/timer/timer.o: kernel/drivers/tables/timer/timer.c
+	$(CC) $(CC_FLAGS) $< -o $@ || $(CC2) $(CC_FLAGS) $< -o $@
+kernel/drivers/tables/irq/irq_s.o: kernel/drivers/tables/irq/irq.s
+	$(AS) -felf32 $< -o $@
+kernel/drivers/tables/idt/idt_s.o: kernel/drivers/tables/idt/idt.s
+	$(AS) -felf32 $< -o $@
+kernel/drivers/tables/irq/irq_s.o: kernel/drivers/tables/irq/irq.s
+	$(AS) -felf32 $< -o $@
+kernel/drivers/tables/isr/isr_s.o: kernel/drivers/tables/isr/isr.s
+	$(AS) -felf32 $< -o $@
+
 # Compile drivers
 kernel/drivers/vga.o: kernel/drivers/vga.c
 	$(CC) $(CC_FLAGS) $< -o $@ || $(CC2) $(CC_FLAGS) $< -o $@
 kernel/drivers/keyboard.o:  kernel/drivers/keyboard.c
 	$(CC) $(CC_FLAGS) $< -o $@ || $(CC2) $(CC_FLAGS) $< -o $@
-
 kernel/ports.o: kernel/ports.c
 	$(CC) $(CC_FLAGS) $< -o $@ || $(CC2) $(CC_FLAGS) $< -o $@
 kernel/mem.o: kernel/mem.c

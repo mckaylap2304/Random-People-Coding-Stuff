@@ -11,6 +11,8 @@ void putchar(char c, uint8_t COLOR);
 void write(char* data, size_t size, uint8_t COLOR);
 void printf(char* data, uint8_t COLOR);
 /* printf without the color parameter (white default) */ void print(char* data);
+void print_int(int n);
+void print_hex(uint32_t n);
 
 void vga_scroll(uint8_t color);
 

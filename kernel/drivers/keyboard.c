@@ -5,10 +5,12 @@
 #include "keyboard.h"
 #include "../layouts/kb_layouts.h"
 #include "../ports.h"
+#include "../terminal/terminal.h"
+#include "vga.h"
 // Layout map by scancodes.
 // Add layout via set_layout()
-char ScASCII[128];
-char ScASCII_UPPER[128];
+static char ScASCII[128];
+static char ScASCII_UPPER[128];
 
 // Key State (what control keys are pressed currently)
 KeyState KEYSTATE;
@@ -18,8 +20,9 @@ unsigned char scancode_to_ascii(scancode_t scancode) {
     // If shift is pressed and CapsLock isn't, and vice versa
     if (KEYSTATE.CapsLock ^ shift)
         return ScASCII_UPPER[(uint8_t) scancode];
-    else
+    else {
         return ScASCII[(uint8_t) scancode];
+    }
 }
 
 void process_keypress(scancode_t sc) {

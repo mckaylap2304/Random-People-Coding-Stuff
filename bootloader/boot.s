@@ -60,7 +60,7 @@ boot_2:
 	mov	es, si
 	mov	bx, 0x8000		;; Destination = 0x0:0x1000
 
-	mov	al, 0x42		;; SECTOR COUNT
+	mov	al, 0x80		;; SECTOR COUNT
 	mov	ch, 0x0			;; CYLINDER
 	mov	cl, 0x2			;; SECTOR (STARTS WITH 1)
 	mov	dh, 0x0			;; HEAD
