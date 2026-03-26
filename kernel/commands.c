@@ -37,9 +37,9 @@ static void cmd_help(uint8_t color) {
     printf("version - Show the current version of the operating system\n", color); // TheOtterMonarch - Output version of the OS
     printf("chars - Print the available characters\n", color);
     printf("comos - Run the .comos scripting language\n", color);
-    printf("init_tables - Inits descriptor tables\n", color); // Pumpkicks - Inits the descriptor tables
-    printf("send_intr - Sends an interruption\n", color); // Pumpkicks - Sends the interruption 0x3
-    printf("start_timer - Starts a timer within 50Hz of velocity\n", color); // Pumpkicks - Starts the timer
+    //printf("init_tables - Inits descriptor tables\n", color); // Pumpkicks - Inits the descriptor tables
+    //printf("send_intr - Sends an interruption\n", color); // Pumpkicks - Sends the interruption 0x3
+    //printf("start_timer - Starts a timer within 50Hz of velocity\n", color); // Pumpkicks - Starts the timer
 }
 
 static void cmd_hello(uint8_t color) {
