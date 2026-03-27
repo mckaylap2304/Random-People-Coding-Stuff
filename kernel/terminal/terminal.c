@@ -50,7 +50,7 @@ void write(char* data, size_t size, uint8_t COLOR) {
 }
 
 // just an alias
-void printf(char* data, uint8_t COLOR) {
+void printc(char* data, uint8_t COLOR) {
 	for (size_t i = 0; data[i]; i++) {
 		putchar(data[i], COLOR);
 	}
