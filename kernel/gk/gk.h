@@ -1,35 +1,54 @@
-#ifndef COMOS_H
-#define COMOS_H
+#ifndef GK_H
+#define GK_H
 
-// CommunityOS scripting language (.comos)
+//ember2819
+// GeckoOS scripting language (.gk)
+
 // Python-like syntax (Literally python btw)
 
-#ifdef COMOS_HOSTED
+#ifdef GK_HOSTED
 #include <stdint.h>
 #include <stddef.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-static inline void comos_print(const char* s) { fputs(s, stdout); }
+//ember2819
+static inline void gk_print(const char* s) { fputs(s, stdout); }
+static inline int gk_hosted_getline(char* buf, int max) {
+    int i = 0;
+    int c;
+    while (i < max - 1) {
+        c = fgetc(stdin);
+        if (c == EOF || c == '\n') break;
+        buf[i++] = (char)c;
+    }
+    buf[i] = 0;
+    return i;
+}
+
 #else
 #include <stdint.h>
 #include <stddef.h>
 #include <stdbool.h>
 #include "../colors.h"
 void printc(char* data, uint8_t color);
-static inline void comos_print(const char* s) { printc((char*)s, TERM_COLOR); }
+
+static inline void gk_print(const char* s) { printc((char*)s, TERM_COLOR); }
+// Forward declaration for kernel input function used by gk input()
+void input(unsigned char* buff, size_t buffer_size, uint8_t color);
+
 #endif
 
-#define COMOS_MAX_TOKENS     2048
-#define COMOS_MAX_NODES      2048
-#define COMOS_MAX_VARS        128
-#define COMOS_MAX_FUNCS        64
-#define COMOS_MAX_PARAMS        8
-#define COMOS_MAX_CALL_DEPTH   32
-#define COMOS_MAX_STR          256
-#define COMOS_MAX_SRC         8192
-#define COMOS_MAX_CHILDREN     64
+#define GK_MAX_TOKENS     2048
+#define GK_MAX_NODES      2048
+#define GK_MAX_VARS        128
+#define GK_MAX_FUNCS        64
+#define GK_MAX_PARAMS        8
+#define GK_MAX_CALL_DEPTH   32
+#define GK_MAX_STR          256
+#define GK_MAX_SRC         8192
+#define GK_MAX_CHILDREN     64
 
 typedef enum {
     TOK_INT, TOK_STR, TOK_IDENT,
@@ -52,7 +71,7 @@ typedef enum {
 typedef struct {
     TokenType type;
     int       int_val;
-    char      str_val[COMOS_MAX_STR];
+    char      str_val[GK_MAX_STR];
     int       line;
 } Token;
 
@@ -75,6 +94,8 @@ typedef enum {
     NODE_BLOCK,
     NODE_PRINT,
     NODE_RANGE,
+    NODE_INPUT,      // input() builtin 
+    NODE_INT_CAST,   // int() builtin 
 } NodeType;
 
 typedef struct Node Node;
@@ -85,11 +106,11 @@ struct Node {
 
     int int_val;
 
-    char str_val[COMOS_MAX_STR];
+    char str_val[GK_MAX_STR];
 
     TokenType op;
 
-    int child[COMOS_MAX_CHILDREN];
+    int child[GK_MAX_CHILDREN];
     int n_children;
 };
 
@@ -99,7 +120,7 @@ typedef struct {
     ValType type;
     int     int_val;
     bool    bool_val;
-    char    str_val[COMOS_MAX_STR];
+    char    str_val[GK_MAX_STR];
 } Value;
 
 typedef struct {
@@ -110,23 +131,23 @@ typedef struct {
 
 typedef struct {
     char name[64];
-    char params[COMOS_MAX_PARAMS][64];
+    char params[GK_MAX_PARAMS][64];
     int  n_params;
     int  body_node;
 } FuncDef;
 
 typedef struct {
-    Node nodes[COMOS_MAX_NODES];
+    Node nodes[GK_MAX_NODES];
     int  node_count;
 
-    Token tokens[COMOS_MAX_TOKENS];
+    Token tokens[GK_MAX_TOKENS];
     int   tok_count;
     int   tok_pos;
 
-    Var  vars[COMOS_MAX_VARS];
+    Var  vars[GK_MAX_VARS];
     int  var_count;
 
-    FuncDef funcs[COMOS_MAX_FUNCS];
+    FuncDef funcs[GK_MAX_FUNCS];
     int     func_count;
 
     int call_depth;
@@ -136,12 +157,12 @@ typedef struct {
     bool continuing;
     Value return_val;
 
-    char error[COMOS_MAX_STR];
-} ComosState;
+    char error[GK_MAX_STR];
+} GkState;
 
-void comos_init(ComosState* s);
+void gk_init(GkState* s);
 
-bool comos_run(ComosState* s, const char* src);
+bool gk_run(GkState* s, const char* src);
 extern void int_to_str(int v, char* buf);
 
 #endif
