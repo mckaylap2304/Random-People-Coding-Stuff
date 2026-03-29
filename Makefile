@@ -18,7 +18,7 @@ KERNEL_OBJECTS = kernel/kernel.o kernel/mem.o
 DRIVER_OBJECTS = kernel/drivers/vga.o kernel/drivers/keyboard.o kernel/drivers/tables/idt/idt_c.o kernel/drivers/tables/idt/idt_s.o \
 	kernel/drivers/tables/isr/isr_c.o kernel/drivers/tables/isr/isr_s.o kernel/drivers/tables/irq/irq_c.o kernel/drivers/tables/irq/irq_s.o kernel/drivers/tables/timer/timer.o
 MISC_OBJECTS = kernel/colors.o kernel/terminal/terminal.o kernel/commands.o kernel/layouts/kb_layouts.o \
-               kernel/comos/comos_lexer.o kernel/comos/comos_parser.o kernel/comos/comos_interp.o # ADDED
+               kernel/gk/gk_lexer.o kernel/gk/gk_parser.o kernel/gk/gk_interp.o #ember2819 renamed from comos/ to gk/
 # Ember2819
 FS_OBJECTS = kernel/drivers/drives.o kernel/drivers/ata.o \
 	kernel/fs/fs.o kernel/fs/fat16.o
