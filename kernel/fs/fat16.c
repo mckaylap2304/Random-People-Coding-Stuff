@@ -400,6 +400,99 @@ int fat16_create_file(struct drive_fs_t *fs, char *name,
 	return 0;
 }
 
+int fat16_write_file(struct drive_fs_t *fs, char *name,
+                     const uint8_t *content, size_t len)
+{
+    FAT16_Volume   *pvol  = (FAT16_Volume *)fs->userdata1;
+    struct kdrive_t *drive = fs->drive;
+
+    uint32_t root_dir_sectors = ((uint32_t)pvol->bpb.root_entry_count * 32
+        + pvol->bpb.bytes_per_sector - 1) / pvol->bpb.bytes_per_sector;
+
+    // Load entire root directory into a buffer
+    uint8_t *root_buf = kmalloc(root_dir_sectors * drive->sector_size);
+    if (drive->read((void*)drive, pvol->root_dir_lba, root_dir_sectors, root_buf) < 0)
+        return -1;
+
+    // Encode the target name into 8.3 format for comparison
+    uint8_t target8[8], target3[3];
+    encode_83_name(name, target8, target3);
+
+    // Find the matching directory entry
+    FAT16_DirEntry *slot = 0;
+    uint32_t total_entries = root_dir_sectors * (drive->sector_size / 32);
+    for (uint32_t i = 0; i < total_entries; i++) {
+        FAT16_DirEntry *e = (FAT16_DirEntry *)root_buf + i;
+        if (e->name[0] == FAT16_ENTRY_END)  break;
+        if (e->name[0] == FAT16_ENTRY_FREE) continue;
+        if (e->attributes & FAT16_ATTR_VOLUME_ID) continue;
+        if ((e->attributes & FAT16_ATTR_LFN) == FAT16_ATTR_LFN) continue;
+        if (e->attributes & FAT16_ATTR_DIRECTORY) continue;
+
+        // Compare 8.3 name bytes
+        int match = 1;
+        for (int k = 0; k < 8; k++) if (e->name[k] != target8[k]) { match = 0; break; }
+        if (match) for (int k = 0; k < 3; k++) if (e->ext[k] != target3[k]) { match = 0; break; }
+        if (match) { slot = e; break; }
+    }
+
+    // File not found – fall back to create
+    if (!slot) {
+        return fat16_create_file(fs, name, content, len);
+    }
+
+    // Free the old cluster chain
+    uint16_t cluster = slot->first_cluster;
+    while (cluster >= 2 && cluster < FAT16_CLUSTER_BAD) {
+        uint16_t next = fat16_next_cluster(drive, pvol, cluster);
+        fat16_write_fat(drive, pvol, cluster, FAT16_CLUSTER_FREE);
+        cluster = next;
+    }
+
+    // Allocate a new chain and write content
+    size_t cluster_size    = pvol->bpb.bytes_per_sector * pvol->bpb.sectors_per_cluster;
+    size_t clusters_needed = (len == 0) ? 1 : (len + cluster_size - 1) / cluster_size;
+
+    uint16_t first_cluster = 0;
+    uint16_t prev_cluster  = 0;
+    size_t   remaining     = len;
+
+    for (size_t c = 0; c < clusters_needed; c++) {
+        uint16_t cl = fat16_alloc_cluster(drive, pvol);
+        if (cl == 0) return -1;   // disk full
+
+        if (first_cluster == 0) first_cluster = cl;
+        if (prev_cluster  != 0) fat16_write_fat(drive, pvol, prev_cluster, cl);
+        prev_cluster = cl;
+
+        uint32_t lba = cluster_to_lba(pvol, cl);
+        uint8_t  tmp[ATA_SECTOR_SIZE];
+
+        for (uint32_t s = 0; s < pvol->bpb.sectors_per_cluster; s++) {
+            memset(tmp, 0, drive->sector_size);
+            size_t chunk = (remaining > drive->sector_size) ? drive->sector_size : remaining;
+            if (chunk > 0) {
+                size_t src_off = len - remaining;
+                memcpy(tmp, content + src_off, chunk);
+                remaining -= chunk;
+            }
+            drive->write((void*)drive, lba + s, 1, tmp);
+        }
+    }
+
+    // Update directory entry with new chain start and size
+    slot->first_cluster = first_cluster;
+    slot->file_size     = (uint32_t)len;
+    slot->write_date    = (uint16_t)((44 << 9) | (1 << 5) | 1);
+    slot->write_time    = 0;
+
+    // Flush updated root directory back to disk
+    if (drive->write((void*)drive, pvol->root_dir_lba, root_dir_sectors, root_buf) < 0)
+        return -1;
+
+    return 0;
+}
+
 void fat16_print_info(struct drive_fs_t *fs, uint8_t color)
 {
 	FAT16_Volume *v = (FAT16_Volume *)fs->userdata1;
