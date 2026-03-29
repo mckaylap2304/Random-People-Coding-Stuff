@@ -24,7 +24,8 @@ static void cmd_clear(uint8_t color);
 static void cmd_version(uint8_t color);
 static void cmd_chars(uint8_t color);
 
-static void cmd_comos(uint8_t color);
+//ember2819
+static void cmd_gk(uint8_t color);
 
 //Pumpkicks: timer and reboot
 static void cmd_sleep5(uint8_t color);
@@ -36,6 +37,9 @@ static void cmd_ls(uint8_t color);
 static void cmd_cat(uint8_t color);
 static void cmd_fsinfo(uint8_t color);
 static void cmd_touch(uint8_t color);
+
+//ember2819
+static void cmd_gk_run_file(const char* filename, uint8_t color);
 
 static int streq(unsigned char *a, char *b);
 void run_command(unsigned char *input, uint8_t color);
