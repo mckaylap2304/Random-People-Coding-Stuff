@@ -5,7 +5,7 @@
 #include "drivers/tables/timer/timer.h"
 #include "layouts/kb_layouts.h"
 #include "terminal/terminal.h"
-#include "comos/comos.h"
+#include "gk/gk.h"
 #include "mem.h"
 #include "drivers/ata.h"
 #include "fs/fs.h"
@@ -24,7 +24,7 @@ static Command commands[] = {
     { "clear", cmd_clear },
     { "version", cmd_version },
     { "chars", cmd_chars },
-    { "comos", cmd_comos },
+    { "gk", cmd_gk },
     { "sleep", cmd_sleep5 },
     { "reboot", cmd_reboot },
     { "ticks", cmd_print_ticks },
@@ -49,7 +49,8 @@ static void cmd_help(uint8_t color) {
     printc("clear - Clear the screen\n", color); //ember
     printc("version - Show the current version of the operating system\n", color); // TheOtterMonarch - Output version of the OS
     printc("chars - Print the available characters\n", color);
-    printc("comos - Run the .comos scripting language\n", color);
+    printc("gk - Run the .gk scripting language (demo mode)\n", color);
+    printc("gk <file.gk> - Run a .gk script file from the filesystem\n", color);
     printc("sleep - Sleeps for 5 seconds (Finally the timer works!)\n", color); // Pumpkicks - yes
     printc("reboot - Reboots the machine\n", color); // Pumpkicks - reboots
     printc("ticks - Prints the timer tick\n", color); // Pumpkicks - show timer ticks
@@ -273,22 +274,69 @@ static void cmd_touch(uint8_t color) {
 	}
 }
 
-//Ember2819,COMOS language 
-static ComosState comos_state;
+static GkState gk_state;
 
-static void cmd_comos(uint8_t color) {
-    // Demo program 
+static void cmd_gk(uint8_t color) {
+    // Demo program
     static const char* demo =
-        "print(\"\nCommunityOS scripting language (.comos)\")\n"
-        "def fib(n):\n"
-        "    if n <= 1:\n"
-        "        return n\n"
-        "    return fib(n - 1) + fib(n - 2)\n"
-        "for i in range(8):\n"
-        "    print(fib(i))\n";
+        "print(\"\nGeckoOS scripting language\")\n"
 
-    comos_init(&comos_state);
-    comos_run(&comos_state, demo);
+    gk_init(&gk_state);
+    gk_run(&gk_state, demo);
+}
+
+static void cmd_gk_run_file(const char* filename, uint8_t color) {
+    if (!fs) {
+        printc("\nFilesystem not mounted. Run 'fsmount' first.\n", VGA_COLOR_RED);
+        return;
+    }
+
+    struct fs_entries_t entries = fs->get_entries((void*)fs);
+
+    // Find the file (case-insensitive)
+    int found = -1;
+    for (int i = 0; i < (int)entries.count; i++) {
+        if (entries.entries[i].type != ENTRY_FILE) continue;
+        const char *a = entries.entries[i].file.name;
+        const char *b = filename;
+        int match = 1;
+        while (*a && *b) {
+            char ca = (*a >= 'a' && *a <= 'z') ? *a - 32 : *a;
+            char cb = (*b >= 'a' && *b <= 'z') ? *b - 32 : *b;
+            if (ca != cb) { match = 0; break; }
+            a++; b++;
+        }
+        if (match && *a == '\0' && *b == '\0') { found = i; break; }
+    }
+
+    if (found < 0) {
+        printc("\nFile not found: ", VGA_COLOR_RED);
+        printc((char*)filename, VGA_COLOR_RED);
+        printc("\n", color);
+        return;
+    }
+
+    // Read the entire file into a source buffer
+    static char src_buf[GK_MAX_SRC];
+    int total = 0;
+    int chunk;
+    int offset = 0;
+    while (total < GK_MAX_SRC - 1) {
+        uint8_t tmp[128];
+        chunk = entries.entries[found].file.read(
+            (void*)&entries.entries[found].file, offset, 128, tmp);
+        if (chunk <= 0) break;
+        for (int k = 0; k < chunk && total < GK_MAX_SRC - 1; k++) {
+            src_buf[total++] = (char)tmp[k];
+        }
+        offset += chunk;
+    }
+    src_buf[total] = '\0';
+
+    // Run it
+    printc("\n", color);
+    gk_init(&gk_state);
+    gk_run(&gk_state, src_buf);
 }
 
 // ---- dispatcher ----
@@ -300,14 +348,32 @@ static int streq(unsigned char *a, char *b) {
     return *a == *b;
 }
 
-void run_command(unsigned char *input, uint8_t color) {
+static const char* starts_with(const unsigned char* str, const char* prefix) {
+    while (*prefix) {
+        if (*str != (unsigned char)*prefix) return 0;
+        str++; prefix++;
+    }
+    return (const char*)str;
+}
+
+void run_command(unsigned char *cmd_input, uint8_t color) {
+    const char* after_gk = starts_with(cmd_input, "gk ");
+    if (after_gk) {
+        // Skip any leading spaces after "gk "
+        while (*after_gk == ' ') after_gk++;
+        if (*after_gk != '\0') {
+            cmd_gk_run_file(after_gk, color);
+            return;
+        }
+    }
+
     // Check the input against command table
     for (int i = 0; i < num_commands; i++) {
-        if (streq(input, commands[i].name)) {
+        if (streq(cmd_input, commands[i].name)) {
             commands[i].func(color);
             return;
         }
     }
-    if (strlen((char*)input) != 0) printc("\nUnknown command. Type 'help' for available commands\n", color);
+    if (strlen((char*)cmd_input) != 0) printc("\nUnknown command. Type 'help' for available commands\n", color);
     else printc("\n", color);
 }
