@@ -25,7 +25,7 @@ void _entry() {
 	kalloc_init();
     // Initialise display.
     vga_clear(TERM_COLOR);
-    printc("----- COMMUNITY OS v1.0 -----\n", TERM_COLOR);
+    printc("----- GeckoOS v1.0 -----\n", TERM_COLOR);
     printc("Built by random people on the internet.\n", TERM_COLOR);
     printc("Use help to see available commands.\n", TERM_COLOR);
 
