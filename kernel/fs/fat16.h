@@ -1,5 +1,4 @@
 //Ember2819
-//FAT16 driver for GeckoOS
 #ifndef FAT16_H
 #define FAT16_H
 
@@ -13,9 +12,15 @@ struct drive_fs_t *fat16_drive_open( struct kdrive_t *drive, struct partition_t 
 int fat16_create_file( struct drive_fs_t *fs, char *name,
                        const uint8_t *content, size_t len );
 
-// ember2819 - overwrite an existing file (or create if not found)
 int fat16_write_file( struct drive_fs_t *fs, char *name,
                       const uint8_t *content, size_t len );
+
+int fat16_delete_file( struct drive_fs_t *fs, char *name );
+
+int fat16_append_file( struct drive_fs_t *fs, char *name,
+                       const uint8_t *content, size_t len );
+
+int fat16_mkdir( struct drive_fs_t *fs, char *name );
 
 void fat16_print_info( struct drive_fs_t *fs, uint8_t color );
 
